@@ -5,16 +5,14 @@ edition = "2021"
 authors = ["Jesse Greenough <jesse.greenough84@gmail.com>"]
 description = "A flexible and ergonomic event emission crate for Rust. Supports both std/threaded and no_std/alloc environments, with tagging, listener lifetimes, async/sync emission, and robust error handling."
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/GreenJ84/Rust_events_crate"
-homepage = "https://github.com/GreenJ84/Rust_events_crate"
+repository = "https://github.com/GreenJ84/rs_events"
+homepage = "https://github.com/GreenJ84/rs_events"
 documentation = "https://docs.rs/rs_events"
 keywords = ["events", "event_emitter", "listener", "async", "no_std"]
 categories = ["asynchronous", "concurrency", "no-std"]
 readme = "README.md"
 
 [package.metadata.docs.rs]
-features = ["threaded"]
-no-default-features = true
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
@@ -23,7 +21,11 @@ default = ["threaded"]
 threaded = ["tokio", "dashmap", "futures-util"]
 
 [dependencies]
-tokio = { version = "1.47.1", optional = true, features = ["rt-multi-thread", "macros", "sync"] }
+tokio = { version = "1.47.1", optional = true, features = [
+  "rt-multi-thread",
+  "macros",
+  "sync",
+] }
 dashmap = { version = "6.1.0", optional = true }
 futures-util = { version = "0.3.31", optional = true }
 
