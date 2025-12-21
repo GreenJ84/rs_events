@@ -1,4 +1,4 @@
-# Contributing to `rs_events`
+# **Contributing to `rs_events`**
 
 Thanks for your interest in contributing to **`rs_events`**! 🎉
 This crate is an event-driven library for Rust, and community involvement is always welcome.
@@ -9,16 +9,24 @@ Feel free to explore the codebase, projects, or examples. If you have questions 
 
 ---
 
-## How to Contribute
+## **How to Contribute**
 
-### 🐞 Report bugs, 💡 propose features, or 🔧 submit fixes
+### 🐞 Report Bugs
 
-* Open an [issue](../../issues) if you find a bug or have an idea.
-* If you’d like to work on an existing issue, comment and wait to be assigned.
+Found a bug? Open an [issue](../../issues) with a clear description, steps to reproduce, and expected behavior.
+
+### 💡 Propose Features
+
+Have an idea? Start a discussion by opening an [issue](../../issues) describing the feature and its use case.
+
+### 🔧 Submit Fixes
+
+Ready to code? Fork the repo, make your changes, and open a PR. See the step-by-step guide below.
+
 
 ---
 
-### 📌 Step-by-Step Guide
+## **Step-by-Step Guide**
 
 **1.** Fork the repository
 [How to fork a repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
@@ -38,7 +46,7 @@ cd rs_events
 **4.** Add the original repo as `upstream`:
 
 ```sh
-git remote add upstream https://github.com/<OWNER>/rs_events.git
+git remote add upstream https://github.com/GreenJ84/rs_events.git
 ```
 
 **5.** Verify your remotes:
@@ -86,11 +94,7 @@ git push -u origin feature/<your-branch-name>
 * Add screenshots or examples if relevant.
 * Explain *why* the change is useful.
 
-**13.** Submit the PR — done! 🚀
-
----
-
-## PR Checklist
+**13.** Submit the PR — PR Checklist 🚀
 
 Before submitting, please ensure:
 
