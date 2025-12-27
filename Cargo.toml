@@ -17,8 +17,12 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["threaded"]
-threaded = ["tokio", "dashmap", "futures-util"]
+default = []
+std = [] # no_std default
+async = ["tokio", "futures-util"] # async support add-on (sync only default)
+multi-thread = ["dashmap"] # multi-threaded support add-on (single-threaded default)
+
+threaded = [] # depreciated legacy
 
 [dependencies]
 tokio = { version = "1.47.1", optional = true, features = [
