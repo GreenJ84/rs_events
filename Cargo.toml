@@ -17,21 +17,42 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = []
-std = [] # no_std default
-async = ["tokio", "futures-util"] # async support add-on (sync only default)
-multi-thread = ["dashmap"] # multi-threaded support add-on (single-threaded default)
+no_std = []
 
-threaded = [] # depreciated legacy
+# Async std runtime
+async-tokio = [
+  "futures-util",
+  "tokio",
+  "tokio/rt",
+  "tokio/macros",
+  "tokio/sync",
+]
+
+# Async no_std runtime
+async-embassy = [
+  "futures-util",
+  "embassy-executor",
+  "embassy-time",
+]
+
+
+# multi-threaded support (enables rt-multi-thread if tokio is enabled)
+multi-thread = [
+  "dashmap",
+  "tokio?/rt-multi-thread",
+]
+
+threaded = ["multi-thread"] # deprecated legacy alias
 
 [dependencies]
-tokio = { version = "1.47.1", optional = true, features = [
-  "rt-multi-thread",
-  "macros",
-  "sync",
-] }
+futures-util = { version = "0.3.31", optional = true, default-features = false }
+
+tokio = { version = "1.49.0", optional = true, default-features = false }
+
+embassy-executor = { version = "0.9.1", optional = true }
+embassy-time = { version = "0.5.0", optional = true }
+
 dashmap = { version = "6.1.0", optional = true }
-futures-util = { version = "0.3.31", optional = true }
 
 [dev-dependencies]
-tokio-test = "0.4.4"
+tokio-test = "0.4.5"
