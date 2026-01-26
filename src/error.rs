@@ -1,8 +1,4 @@
-#[cfg(feature = "threaded")]
-use std::error::Error;
-
-#[cfg(not(feature = "threaded"))]
-use core::error::Error;
+use crate::{Error, Display, Formatter, Debug, FmtResult};
 
 /// Errors that can occur in the event system.
 ///
@@ -48,8 +44,8 @@ impl PartialEq for EventError {
 }
 impl Eq for EventError {}
 
-impl core::fmt::Display for EventError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+impl Display for EventError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             EventError::OverloadedEvent => write!(f, "Too many listeners for event"),
             EventError::ListenerNotFound => write!(f, "Listener not found"),
@@ -59,5 +55,5 @@ impl core::fmt::Display for EventError {
     }
 }
 
-#[cfg(feature = "threaded")]
-impl std::error::Error for EventError {}
+#[cfg(not(feature = "no_std"))]
+impl Error for EventError {}
