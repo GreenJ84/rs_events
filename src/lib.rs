@@ -1,4 +1,4 @@
-//! # Rust Events (rs_events)
+//! # Rust Events Crate (rs_events)
 //!
 //! This crate provides a flexible, modular event system for Rust applications. Components include:
 //!
@@ -8,47 +8,27 @@
 //!
 //! ## Features
 //!
-//! The crate supports two build modes via a single feature flag:
+//! The crate supports multiple build modes via feature flags:
 //!
-//! - **`threaded` (default)**: Enables the std/async backend using `tokio` and `dashmap` for
-//!   high concurrency and efficient scheduling. Ideal for servers and desktop apps.
-//! - **`no_std`/`alloc` (disable defaults)**: Build without the `threaded` feature to use the
-//!   minimal backend suitable for embedded or constrained environments. This backend avoids heavy
-//!   dependencies and uses `alloc` types.
-//!
-//! Select the mode in your `Cargo.toml`:
-//!
-//! ```toml
-//! // Threaded (default)
-//! [dependencies]
-//! rs_events = "0.1.0"
-//!
-//! // no_std/alloc (disable defaults)
-//! [dependencies]
-//! rs_events = { version = "0.1.0", default-features = false }
-//! ```
-//!
-//! ## Backends & Modules
-//!
-//! - When `threaded` is enabled: types are re-exported from the `threaded` module
-//!   (e.g., [`threaded::event_emitter::EventEmitter`]) and include async helpers.
-//! - When `threaded` is disabled: types are re-exported from the `base` module
-//!   (e.g., [`base::event_emitter::EventEmitter`]) with a lean, allocation-focused design.
-//!
-//! This crate re-exports the same type names (`EventEmitter`, `Listener`, `EventHandler`) at the
-//! top level, so consumer code remains identical across backends.
+//! - **default** (std/sync): Enables the std/sync backend using the standard library for single-threaded environments.
+//! - **no_std**: Enables the core library as a replacement for the standard library in environments without std support.
+//! - **async**: Adds async support using
+//! `futures-util` and:
+//!   - `tokio` for async std task scheduling
+//!   - (future) `Embassy` for no_std async utilities
+//! - **threaded**: Enables multi-threaded support using `dashmap` for concurrent event storage.
 //!
 //! ## Error Model
 //!
 //! The error type [`EventError`] is consistent across backends, with a difference in the
 //! representation of the catch-all variant:
 //!
-//! - Threaded: `EventError::Other(Box<dyn std::error::Error + Send + Sync>)`
+//! - std: `EventError::Other(Box<dyn std::error::Error + Send + Sync>)`
 //! - no_std + alloc: `EventError::Other(Box<dyn core::error::Error + Send + Sync>)`
 //!
 //! ## Usage Examples
 //!
-//! ### **Threaded (default)**
+//! ### **Std (default)**
 //!
 //! ```toml
 //! [dependencies]
@@ -92,28 +72,37 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+
+// App Re-exports =============
+mod re_exports;
+pub(crate) use re_exports::*;
+
 mod constants;
 pub use crate::constants::*;
 
 mod error;
 pub use crate::error::*;
 
-// Base (non-threaded) backend
-#[cfg(not(feature = "threaded"))]
-#[cfg_attr(docsrs, doc(cfg(not(feature = "threaded"))))]
+// Base (non-threaded) backend ===============
+#[cfg(feature = "no_std")]
+#[cfg_attr(docsrs, doc(cfg(feature = "no_std")))]
 mod base;
 
-#[cfg(not(feature = "threaded"))]
-#[cfg_attr(docsrs, doc(cfg(not(feature = "threaded"))))]
+#[cfg(feature = "no_std")]
+#[cfg_attr(docsrs, doc(cfg(feature = "no_std")))]
 pub use base::{event_emitter::EventEmitter, event_handler::EventHandler, listener::Listener};
 
-// Threaded backend
-#[cfg(feature = "threaded")]
-#[cfg_attr(docsrs, doc(cfg(feature = "threaded")))]
+
+// Threaded backend. ===============
+#[cfg(not(feature = "no_std"))]
+#[cfg_attr(docsrs, doc(cfg(not(feature = "no_std"))))]
 mod threaded;
 
-#[cfg(feature = "threaded")]
-#[cfg_attr(docsrs, doc(cfg(feature = "threaded")))]
+#[cfg(not(feature = "no_std"))]
+#[cfg_attr(docsrs, doc(cfg(not(feature = "no_std"))))]
 pub use threaded::{event_emitter::EventEmitter, event_handler::EventHandler, listener::Listener};
+
+
+// Integration Tests ===============
 #[cfg(test)]
 mod tests;
