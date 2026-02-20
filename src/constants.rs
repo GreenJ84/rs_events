@@ -1,56 +1,48 @@
-#[cfg(not(feature = "threaded"))]
-extern crate alloc;
-#[cfg(not(feature = "threaded"))]
-use alloc::sync::Arc;
-
-#[cfg(feature = "threaded")]
-use std::sync::Arc;
-
+use crate::Arc;
 /// Type alias for an event payload pointer.
 ///
-/// Uses `Arc<T>` for both threaded and embedded builds.
+/// Uses `Arc<T>` for both default and no standard library builds.
 ///
-/// # Example
+/// # Example (default: std)
 /// ```
-/// #[cfg(not(feature = "threaded"))]
-/// extern crate alloc;
-/// #[cfg(not(feature = "threaded"))]
-/// use alloc::sync::Arc;
-///
-/// #[cfg(feature="threaded")]
 /// use std::sync::Arc;
-///
 /// use rs_events::{Callback, EventPayload};
+///
+/// let payload: EventPayload<String> = Arc::new(String::from("Emitting value"));
+/// ```
+/// # Example (no_std)
+/// ```
+/// extern crate alloc;
+/// use alloc::sync::Arc;
+/// use rs_events::{Callback, EventPayload};
+///
 /// let payload: EventPayload<String> = Arc::new(String::from("Emitting value"));
 /// ```
 pub type EventPayload<T> = Arc<T>;
 
 /// Type alias for a callback pointer.
 ///
-/// - Allows any closure (no thread-safety required).
+/// - Uses `Arc<dyn Fn(&EventPayload<T>) + Send + Sync>` for both default and no standard library builds.
+/// - Requires `Send + Sync` for thread safety.
 ///
-/// # Example (embedded/no_std)
+/// # Example (default: std)
+/// ```
+/// use std::sync::Arc;
+/// use rs_events::{Callback, EventPayload};
+///
+/// let callback: Callback<String> = Arc::new(move |payload: &EventPayload<String>| {
+///     println!("Received event: {}", payload);
+/// });
+/// ```
+///
+/// # Example (no_std)
 /// ```
 /// extern crate alloc;
 /// use alloc::sync::Arc;
 /// use rs_events::{Callback, EventPayload};
+///
 /// let callback: Callback<String> = Arc::new(move |payload: &EventPayload<String>| {
 ///     println!("Received event: {}", payload);
 /// });
 /// ```
-#[cfg(not(feature = "threaded"))]
-pub type Callback<T> = Arc<dyn Fn(&EventPayload<T>)>;
-
-/// Type alias for a callback pointer.
-///
-/// - Requires `Send + Sync` for thread safety.
-///
-/// # Example (threaded)
-/// ```
-/// use std::sync::Arc;
-/// use rs_events::{Callback, EventPayload};
-/// let callback: Callback<String> = Arc::new(move |payload: &EventPayload<String>| {
-///     println!("Received event: {}", payload);
-/// });
-#[cfg(feature = "threaded")]
 pub type Callback<T> = Arc<dyn Fn(&EventPayload<T>) + Send + Sync>;

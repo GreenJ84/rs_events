@@ -8,10 +8,12 @@
 //!
 //! ## Features
 //!
-//! The crate supports multiple build modes via feature flags:
+//! The crate supports runtime modes via feature flags:
 //!
-//! - **default** (std/sync): Enables the std/sync backend using the standard library for single-threaded environments.
+//! - **default** (std): Enables the std/sync backend using the standard library for single-threaded environments.
 //! - **no_std**: Utilizes the core library as a replacement for the standard library in environments without std support.
+//!
+//! The crate also supports optional features for async and multi-threaded extensions:
 //! - **async**: Adds async support using
 //! `futures-util` and:
 //!   - `tokio` for async std task scheduling
@@ -87,10 +89,10 @@ mod listener;
 pub use crate::listener::Listener;
 
 mod emitter;
-// pub use crate::emitter::EventEmitter;
+pub use crate::emitter::EventEmitter;
 
 mod handler;
-// pub use crate::handler::EventHandler;
+pub use crate::handler::EventHandler;
 
 
 // Integration Tests ===============
