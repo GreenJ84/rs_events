@@ -1,3 +1,4 @@
+#[cfg(feature = "async-tokio")]
 use futures_util::future::BoxFuture;
 
 use crate::{Callback, EventError, EventPayload, Listener};
@@ -185,6 +186,7 @@ pub trait EventHandler<T: Send + Sync>: Send + Sync {
     /// A `BoxFuture` that resolves to:
     /// * `Ok(())` if the event was emitted successfully.
     /// * `Err(EventError::EventNotFound)` if the event has not been registered.
+    #[cfg(feature = "async-tokio")]
     fn emit_async<'a>(
         &'a mut self,
         event_name: &'a str,
@@ -203,6 +205,7 @@ pub trait EventHandler<T: Send + Sync>: Send + Sync {
     /// A `BoxFuture` that resolves to:
     /// * `Ok(Vec<Listener<T>>) ` if the event was emitted and listeners were removed successfully.
     /// * `Err(EventError::EventNotFound)` if the event has not been registered.
+    #[cfg(feature = "async-tokio")]
     fn emit_final_async<'a>(
         &'a mut self,
         event_name: &'a str,

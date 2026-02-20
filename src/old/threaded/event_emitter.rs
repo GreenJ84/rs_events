@@ -1,7 +1,8 @@
-use dashmap::DashMap;
-use futures_util::future::{join_all, BoxFuture};
-use std::sync::Arc;
 
+#[cfg(feature = "async-tokio")]
+use futures_util::future::{join_all, BoxFuture};
+
+use crate::{Arc, Map};
 use crate::{Callback, EventError, EventHandler, EventPayload, Listener};
 
 /// An event emitter that manages listeners and event emissions for a given payload type.
@@ -23,7 +24,7 @@ where
     /// The maximum number of listeners allowed per event.
     max_listeners: usize,
     /// The concurrent map of event names to their listeners.
-    events: Arc<DashMap<String, Vec<Listener<T>>>>,
+    events: Arc<Map<String, Vec<Listener<T>>>>,
 }
 
 impl<T: Send + Sync> EventEmitter<T> {
