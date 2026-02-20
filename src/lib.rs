@@ -11,7 +11,7 @@
 //! The crate supports multiple build modes via feature flags:
 //!
 //! - **default** (std/sync): Enables the std/sync backend using the standard library for single-threaded environments.
-//! - **no_std**: Enables the core library as a replacement for the standard library in environments without std support.
+//! - **no_std**: Utilizes the core library as a replacement for the standard library in environments without std support.
 //! - **async**: Adds async support using
 //! `futures-util` and:
 //!   - `tokio` for async std task scheduling
@@ -74,8 +74,8 @@
 
 
 // App Re-exports =============
-mod re_exports;
-pub(crate) use re_exports::*;
+mod imports;
+pub(crate) use imports::*;
 
 mod constants;
 pub use crate::constants::*;
@@ -83,24 +83,14 @@ pub use crate::constants::*;
 mod error;
 pub use crate::error::*;
 
-// Base (non-threaded) backend ===============
-#[cfg(feature = "no_std")]
-#[cfg_attr(docsrs, doc(cfg(feature = "no_std")))]
-mod base;
+mod listener;
+pub use crate::listener::Listener;
 
-#[cfg(feature = "no_std")]
-#[cfg_attr(docsrs, doc(cfg(feature = "no_std")))]
-pub use base::{event_emitter::EventEmitter, event_handler::EventHandler, listener::Listener};
+mod emitter;
+// pub use crate::emitter::EventEmitter;
 
-
-// Threaded backend. ===============
-#[cfg(not(feature = "no_std"))]
-#[cfg_attr(docsrs, doc(cfg(not(feature = "no_std"))))]
-mod threaded;
-
-#[cfg(not(feature = "no_std"))]
-#[cfg_attr(docsrs, doc(cfg(not(feature = "no_std"))))]
-pub use threaded::{event_emitter::EventEmitter, event_handler::EventHandler, listener::Listener};
+mod handler;
+// pub use crate::handler::EventHandler;
 
 
 // Integration Tests ===============
