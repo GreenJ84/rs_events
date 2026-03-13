@@ -38,11 +38,11 @@
 //! - **Async blocking** ([`blocking_call()`](Listener::blocking_call)): Spawn in a blocking thread pool.
 
 #[cfg(feature = "async-tokio")]
-mod async;
+mod async_ext;
 
-use crate::{Arc, AtomicU64, Ordering};
-use crate::{Debug, Formatter, FmtResult};
+use crate::{Arc, AtomicU64, String, Ordering};
 use crate::{Callback, EventPayload};
+use crate::{Debug, FmtResult, Formatter};
 
 /// A thread-safe handle to an event listener callback.
 ///
@@ -67,6 +67,8 @@ use crate::{Callback, EventPayload};
 ///     }),
 ///     Some(3), // lifetime: call up to 3 times (None/Some(0) = unlimited)
 /// );
+/// assert_eq!(listener.tag(), Some(&"my_handler".to_string()));
+/// assert_eq!(listener.lifetime(), Some(3));
 /// ```
 ///
 /// No_Std Example:
@@ -82,6 +84,8 @@ use crate::{Callback, EventPayload};
 /// let listener = Listener::new(Some("my_tag".to_string()), Arc::new(|payload: &EventPayload<String>| {
 ///     // handle payload
 /// }), None);
+/// assert_eq!(listener.tag(), Some(&"my_tag".to_string()));
+/// assert_eq!(listener.lifetime(), None);
 /// ```
 ///
 /// # Thread Safety
@@ -107,24 +111,26 @@ impl<T: Send + Sync + 'static> Listener<T> {
     ///
     /// Unlimited listener:
     /// ```
-    /// # use std::sync::Arc;
-    /// # use rs_events::{Listener, EventPayload};
+    /// use std::sync::Arc;
+    /// use rs_events::{Listener, EventPayload};
     /// let listener = Listener::new(
     ///     Some("my_tag".to_string()),
     ///     Arc::new(|_: &EventPayload<String>| {}),
     ///     None, // Some(0) is also unlimited
     /// );
+    /// assert_eq!(listener.lifetime(), None);
     /// ```
     ///
     /// Limited to 3 calls:
     /// ```
-    /// # use std::sync::Arc;
-    /// # use rs_events::{Listener, EventPayload};
+    /// use std::sync::Arc;
+    /// use rs_events::{Listener, EventPayload};
     /// let listener = Listener::new(
     ///     None,
     ///     Arc::new(|_: &EventPayload<String>| {}),
     ///     Some(3),
     /// );
+    /// assert_eq!(listener.lifetime(), Some(3));
     /// ```
     pub fn new(tag: Option<String>, callback: Callback<T>, lifetime: Option<u64>) -> Self {
         Self {
@@ -141,8 +147,8 @@ impl<T: Send + Sync + 'static> Listener<T> {
     ///
     /// # Example
     /// ```
-    /// # use std::sync::Arc;
-    /// # use rs_events::{Listener, EventPayload};
+    /// use std::sync::Arc;
+    /// use rs_events::{Listener, EventPayload};
     /// let listener = Listener::new(
     ///     Some("my_tag".to_string()),
     ///     Arc::new(|_: &EventPayload<String>| {}),
@@ -158,14 +164,16 @@ impl<T: Send + Sync + 'static> Listener<T> {
     ///
     /// # Example
     /// ```
-    /// # use std::sync::Arc;
-    /// # use rs_events::{Listener, EventPayload};
+    /// use std::sync::Arc;
+    /// use rs_events::{Callback, Listener, EventPayload};
+    /// let callback: Callback<String> = Arc::new(|_: &EventPayload<String>| {});
     /// let listener = Listener::new(
     ///     None,
-    ///     Arc::new(|_: &EventPayload<String>| {}),
+    ///     callback.clone(),
     ///     None,
     /// );
     /// let _callback = listener.callback();
+    /// assert!(Arc::ptr_eq(&callback, _callback));
     /// ```
     pub fn callback(&self) -> &Callback<T> {
         &self.callback
@@ -177,8 +185,8 @@ impl<T: Send + Sync + 'static> Listener<T> {
     ///
     /// # Example
     /// ```
-    /// # use std::sync::Arc;
-    /// # use rs_events::{Listener, EventPayload};
+    /// use std::sync::Arc;
+    /// use rs_events::{Listener, EventPayload};
     /// let mut listener = Listener::new(
     ///     None,
     ///     Arc::new(|_: &EventPayload<String>| {}),
@@ -188,6 +196,9 @@ impl<T: Send + Sync + 'static> Listener<T> {
     ///
     /// listener.call(&Arc::new("test".to_string()));
     /// assert_eq!(listener.lifetime(), Some(1));
+    ///
+    /// listener.call(&Arc::new("test".to_string()));
+    /// assert_eq!(listener.lifetime(), Some(0));
     /// ```
     pub fn lifetime(&self) -> Option<u64> {
         self.lifetime.as_ref().map(|l| l.load(Ordering::SeqCst))
@@ -199,14 +210,15 @@ impl<T: Send + Sync + 'static> Listener<T> {
     ///
     /// # Example
     /// ```
-    /// # use std::sync::Arc;
-    /// # use rs_events::{Listener, EventPayload};
+    /// use std::sync::Arc;
+    /// use rs_events::{Listener, EventPayload};
     /// let mut listener = Listener::new(
     ///     None,
     ///     Arc::new(|_: &EventPayload<String>| {}),
     ///     Some(1),
     /// );
     /// assert!(!listener.at_limit());
+    ///
     /// listener.call(&Arc::new("test".to_string()));
     /// assert!(listener.at_limit());
     /// ```
@@ -218,6 +230,7 @@ impl<T: Send + Sync + 'static> Listener<T> {
         }
     }
 
+    /// Validate that the listener can be called (not at limit) and decrement lifetime if applicable.
     fn validate_call(&mut self) -> bool {
         if let Some(ref lifetime) = self.lifetime {
             if lifetime
@@ -239,7 +252,7 @@ impl<T: Send + Sync + 'static> Listener<T> {
     /// Call the callback synchronously (blocking).
     ///
     /// The callback is invoked immediately. If the listener has a limited lifetime,
-    /// it is decremented. If the listener has reached its limit, this is a no-op.
+    /// it is decremented. If the listener has reached its limit, there is a no operation.
     ///
     /// # Example
     /// ```
@@ -256,82 +269,10 @@ impl<T: Send + Sync + 'static> Listener<T> {
     /// ```
     #[inline]
     pub fn call(&mut self, payload: &EventPayload<T>) {
-        if !self.validate_call() { return; }
+        if !self.validate_call() {
+            return;
+        }
         (self.callback)(payload);
-    }
-
-    /// Call the callback asynchronously in a Tokio task.
-    ///
-    /// Spawns the callback as an async task and returns a handle to await completion.
-    /// If the listener is at its call limit, returns `None` without spawning.
-    ///
-    /// # Returns
-    /// `Some(JoinHandle)` to await the task, or `None` if at limit.
-    ///
-    /// # Example
-    /// ```
-    /// # use std::sync::Arc;
-    /// # use tokio::runtime::Runtime;
-    /// # use rs_events::{Listener, EventPayload};
-    /// let rt = Runtime::new().unwrap();
-    /// rt.block_on(async {
-    ///     let mut listener = Listener::new(
-    ///         None,
-    ///         Arc::new(|_: &EventPayload<String>| {}),
-    ///         Some(1),
-    ///     );
-    ///     let handle = listener.background_call(&Arc::new("test".to_string()));
-    ///     if let Some(task) = handle {
-    ///         task.await;
-    ///     }
-    /// });
-    /// ```
-    #[cfg(feature = "async-tokio")]
-    #[inline]
-    #[must_use]
-    pub fn background_call(&mut self, payload: &EventPayload<T>) -> Option<JoinHandle<()>> {
-        if !self.validate_call() { return None; }
-        let callback = Arc::clone(&self.callback);
-        let payload = Arc::clone(payload);
-        Some(tokio::spawn(async move {
-            callback(&payload);
-        }))
-    }
-
-    /// Call the callback in a Tokio blocking thread pool.
-    ///
-    /// Use this for CPU-intensive or blocking work that shouldn't starve async tasks.
-    /// Returns a handle to await completion, or `None` if at limit.
-    ///
-    /// # Returns
-    /// `Some(JoinHandle)` to await the task, or `None` if at limit.
-    ///
-    /// # Example
-    /// ```
-    /// # use std::sync::Arc;
-    /// # use tokio::runtime::Runtime;
-    /// # use rs_events::{Listener, EventPayload};
-    /// let rt = Runtime::new().unwrap();
-    /// rt.block_on(async {
-    ///     let mut listener = Listener::new(
-    ///         None,
-    ///         Arc::new(|_: &EventPayload<String>| {}),
-    ///         Some(1),
-    ///     );
-    ///     let handle = listener.blocking_call(&Arc::new("test".to_string()));
-    ///     if let Some(task) = handle {
-    ///         task.await;
-    ///     }
-    /// });
-    /// ```
-    #[cfg(feature = "async-tokio")]
-    #[inline]
-    #[must_use]
-    pub fn blocking_call(&mut self, payload: &EventPayload<T>) -> Option<JoinHandle<()>> {
-        if !self.validate_call() { return None; }
-        let callback = Arc::clone(&self.callback);
-        let payload = Arc::clone(payload);
-        Some(tokio::task::spawn_blocking(move || callback(&payload)))
     }
 }
 
@@ -350,6 +291,7 @@ impl<T: Send + Sync + 'static> Clone for Listener<T> {
         self.lifetime = source.lifetime.as_ref().map(Arc::clone);
     }
 }
+
 impl<T: Send + Sync + 'static> Default for Listener<T> {
     /// Returns a default listener with a no-op callback and a single call limit.
     ///
@@ -362,6 +304,7 @@ impl<T: Send + Sync + 'static> Default for Listener<T> {
         Self::new(None, Arc::new(|_: &EventPayload<T>| {}), Some(1))
     }
 }
+
 impl<T> Debug for Listener<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("Listener")
@@ -373,6 +316,7 @@ impl<T> Debug for Listener<T> {
             .finish()
     }
 }
+
 impl<T> PartialEq for Listener<T> {
     fn eq(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.callback, &other.callback) && self.tag == other.tag
