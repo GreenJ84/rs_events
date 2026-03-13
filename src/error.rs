@@ -1,3 +1,5 @@
+extern crate alloc;
+use crate::{Box};
 use crate::{Error, Display, Formatter, Debug, FmtResult};
 
 /// Errors that can occur in the event system.
@@ -31,13 +33,14 @@ pub enum EventError {
     /// Any other possible Errors during Event Handling
     Other(Box<dyn Error + Send + Sync>),
 }
+
 impl PartialEq for EventError {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (EventError::ListenerNotFound, EventError::ListenerNotFound)
             | (EventError::EventNotFound, EventError::EventNotFound)
             | (EventError::OverloadedEvent, EventError::OverloadedEvent) => true,
-            (EventError::Other(a), EventError::Other(b)) => a.to_string() == b.to_string(),
+            (EventError::Other(a), EventError::Other(b)) => alloc::format!("{:?}", a) == alloc::format!("{:?}", b),
             _ => false,
         }
     }
