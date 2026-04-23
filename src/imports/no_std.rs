@@ -4,6 +4,7 @@ pub(crate) use alloc::{
   boxed::Box,
   rc::Rc,
   sync::Arc,
+  format
 };
 
 pub(crate) use core::sync::atomic::{AtomicU64, Ordering};

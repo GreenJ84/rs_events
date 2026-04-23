@@ -6,6 +6,7 @@ pub(crate) use std::{
     atomic::{AtomicU64, Ordering},
     Arc,
   },
+  format
 };
 
 pub(crate) use std::fmt::{Display, Debug, Formatter, Result as FmtResult};
