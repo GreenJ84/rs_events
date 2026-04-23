@@ -1,6 +1,5 @@
-extern crate alloc;
 use crate::{Box};
-use crate::{Error, Display, Formatter, Debug, FmtResult};
+use crate::{Error, Display, Formatter, Debug, FmtResult, format};
 
 /// Errors that can occur in the event system.
 ///
@@ -9,6 +8,14 @@ use crate::{Error, Display, Formatter, Debug, FmtResult};
 /// - `ListenerNotFound`: Tried to remove or emit to a listener that does not exist.
 /// - `EventNotFound`: Tried to remove or emit to an event that does not exist.
 /// - `Other`: Any other error (Boxed trait object).
+///
+/// Example:
+/// ```
+/// use rs_events::EventError;
+/// let error = EventError::OverloadedEvent;
+/// assert_eq!(error, EventError::OverloadedEvent);
+/// assert_eq!(error.to_string(), "Too many listeners for event");
+/// ```
 #[derive(Debug)]
 pub enum EventError {
     /// Trying to add more than `max_listeners` to an Event.
@@ -40,7 +47,7 @@ impl PartialEq for EventError {
             (EventError::ListenerNotFound, EventError::ListenerNotFound)
             | (EventError::EventNotFound, EventError::EventNotFound)
             | (EventError::OverloadedEvent, EventError::OverloadedEvent) => true,
-            (EventError::Other(a), EventError::Other(b)) => alloc::format!("{:?}", a) == alloc::format!("{:?}", b),
+            (EventError::Other(a), EventError::Other(b)) => format!("{:?}", a) == format!("{:?}", b),
             _ => false,
         }
     }
@@ -58,5 +65,4 @@ impl Display for EventError {
     }
 }
 
-#[cfg(not(feature = "no_std"))]
 impl Error for EventError {}
