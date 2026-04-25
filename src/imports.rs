@@ -1,18 +1,20 @@
 use crate::alloc;
 
-pub(crate) use alloc::{boxed::Box, format, rc::Rc, string::String, sync::Arc};
-
+pub(crate) use alloc::{boxed::Box, format, rc::Rc, string::String};
 pub(crate) use core::{
     cell::Cell,
-    sync::atomic::{AtomicU64, Ordering},
+    error::Error,
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
-
-pub(crate) use core::fmt::{Debug, Display, Formatter, Result as FmtResult};
-
-pub(crate) use core::error::Error;
 
 #[cfg(not(feature = "multi-thread"))]
 pub(crate) use alloc::collections::BTreeMap as Map;
+
+#[cfg(any(feature = "async-tokio", feature = "multi-thread"))]
+pub(crate) use {
+    alloc::sync::Arc,
+    core::sync::atomic::{AtomicU64, Ordering},
+};
 
 // Multi - Thread Map ========================
 #[cfg(feature = "multi-thread")]
