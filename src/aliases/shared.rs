@@ -9,7 +9,7 @@ use crate::Arc;
 ///
 /// # Example (default: std)
 /// ```rust
-/// use rs_events::{SharedCallback, SharedPayload};
+/// use rs_events::{SharedPayload};
 ///
 /// let payload: SharedPayload<String> = SharedPayload::new(String::from("Emitting value"));
 /// ```
@@ -22,9 +22,10 @@ pub type SharedPayload<T> = Arc<T>;
 ///
 /// # Example (default: std)
 /// ```
-/// use rs_events::{SharedCallback, SharedPayload};
+/// use std::sync::Arc;
+/// use rs_events::SharedPayload;
 ///
-/// let callback: SharedCallback<String> = SharedCallback::new(move |payload: &SharedPayload<String>| {
+/// let callback: SharedCallback<String> = Arc::new(move |payload: &SharedPayload<String>| {
 ///     println!("Received event: {}", payload);
 /// });
 /// ```

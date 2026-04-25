@@ -9,6 +9,7 @@ use crate::Rc;
 ///
 /// # Example (default: std)
 /// ```
+/// use std::rc::Rc;
 /// use rs_events::{LocalCallback, LocalPayload};
 ///
 /// let payload: LocalPayload<String> = LocalPayload::new(String::from("Emitting value"));
@@ -25,9 +26,10 @@ pub type LocalPayload<T> = Rc<T>;
 ///
 /// # Example (default: std)
 /// ```
+/// use std::rc::Rc;
 /// use rs_events::{LocalCallback, LocalPayload};
 ///
-/// let callback: LocalCallback<String> = LocalCallback::new(move |payload: &LocalPayload<String>| {
+/// let callback: LocalCallback<String> = Rc::new(move |payload: &LocalPayload<String>| {
 ///     println!("Received event: {}", payload);
 /// });
 /// ```
