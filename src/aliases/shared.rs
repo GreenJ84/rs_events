@@ -23,7 +23,7 @@ pub type SharedPayload<T> = Arc<T>;
 /// # Example (default: std)
 /// ```
 /// use std::sync::Arc;
-/// use rs_events::SharedPayload;
+/// use rs_events::{SharedPayload, SharedCallback};
 ///
 /// let callback: SharedCallback<String> = Arc::new(move |payload: &SharedPayload<String>| {
 ///     println!("Received event: {}", payload);

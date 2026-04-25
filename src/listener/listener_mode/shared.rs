@@ -14,7 +14,6 @@ pub struct SharedMode;
 impl ListenerMode for SharedMode {
     type Payload<T> = SharedPayload<T>;
 
-
     type Callback<T> = SharedCallback<T>;
 
     /// Compares two shared callback handles by pointer identity.
@@ -41,8 +40,6 @@ impl ListenerMode for SharedMode {
     fn invoke_callback<T>(callback: &Self::Callback<T>, payload: &Self::Payload<T>) {
         callback(payload);
     }
-
-
 
     type Lifetime = Arc<AtomicU64>;
 
@@ -89,7 +86,9 @@ impl ListenerMode for SharedMode {
     /// - `true` if the listener has a lifetime limit and has reached it (0 calls remaining).
     /// - `false` if the listener is unlimited or has remaining calls.
     fn at_limit(lifetime: &Option<Self::Lifetime>) -> bool {
-        lifetime.as_ref().is_some_and(|a| a.load(Ordering::SeqCst) == 0)
+        lifetime
+            .as_ref()
+            .is_some_and(|a| a.load(Ordering::SeqCst) == 0)
     }
 
     /// Atomically decrements the call counter when possible.
@@ -107,7 +106,7 @@ impl ListenerMode for SharedMode {
             None => true,
             Some(a) => a
                 .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |x| {
-                    (x > 0).then_some(x - 1)
+                    (x > 0).then(|| x - 1)
                 })
                 .is_ok(),
         }

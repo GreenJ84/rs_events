@@ -60,7 +60,7 @@
 //! - **Async background** ([`background_call()`](Listener::background_call)): Spawn in a Tokio task.
 //! - **Async blocking** ([`blocking_call()`](Listener::blocking_call)): Spawn in a blocking thread pool.
 
-pub mod listener_mode;
+mod listener_mode;
 pub use listener_mode::*;
 
 #[cfg(feature = "async-tokio")]
@@ -159,7 +159,7 @@ impl<T, M: ListenerMode> Listener<T, M> {
     /// use std::sync::Arc;
     /// use rs_events::{Listener, SharedPayload, listener::SharedMode};
     /// // let listener = Listener::shared(
-    /// let listener: Listener<String> = Listener::<String, SharedMode>::new(
+    /// let listener = Listener::<String, SharedMode>::new(
     ///     Some("my_tag".to_string()),
     ///     Arc::new(|_: &SharedPayload<String>| {}),
     ///     Some(5),

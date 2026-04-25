@@ -1,26 +1,30 @@
 use tokio::task::JoinHandle;
 
 use crate::{Arc};
-use crate::{Listener, EventPayload};
+use crate::{Listener, SharedPayload, listener::SharedMode};
 
-impl<T: Send + Sync + 'static> Listener<T> {
-    /// Call the callback asynchronously in a Tokio task.
+impl<T: Send + Sync + 'static> Listener<T, SharedMode> {
+    /// Call the callback asynchronously in a Tokio task, for non-blocking async work.
     ///
-    /// Spawns the callback as an async task and returns a handle to await completion.
-    /// If the listener is at its call limit, returns `None` without spawning.
+    /// # Arguments
+    ///
+    /// - `payload`: The payload to pass to the callback. Must be `Send + Sync + 'static` to be used across async boundaries.
     ///
     /// # Returns
-    /// `Some(JoinHandle)` to await the task, or `None` if at limit.
+    ///
+    /// - `None` if the listener has reached its call limit and cannot be called.
+    /// - `Some(JoinHandle)` if the call was successfully initiated, allowing the caller to await its completion.
     ///
     /// # Example
     /// ```rust
     /// use std::sync::Arc;
-    /// use rs_events::{Listener, EventPayload};
+    /// use rs_events::{Listener, SharedPayload, listener::SharedMode};
+    ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() {
-    ///   let mut listener = Listener::new(
+    ///   let mut listener = Listener::<String, SharedMode>::new(
     ///       None,
-    ///       Arc::new(|_: &EventPayload<String>| {}),
+    ///       Arc::new(|_: &SharedPayload<String>| {}),
     ///       Some(1),
     ///   );
     ///   let handle = listener.background_call(&Arc::new("test".to_string()));
@@ -34,7 +38,7 @@ impl<T: Send + Sync + 'static> Listener<T> {
     /// ```
     #[inline]
     #[must_use]
-    pub fn background_call(&mut self, payload: &EventPayload<T>) -> Option<JoinHandle<()>> {
+    pub fn background_call(&mut self, payload: &SharedPayload<T>) -> Option<JoinHandle<()>> {
         if !self.validate_call() {
             return None;
         }
@@ -56,12 +60,13 @@ impl<T: Send + Sync + 'static> Listener<T> {
     /// # Example
     /// ```rust
     /// use std::sync::Arc;
-    /// use rs_events::{Listener, EventPayload};
+    /// use rs_events::{Listener, SharedPayload, listener::SharedMode};
+    ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() {
-    ///     let mut listener = Listener::new(
+    ///     let mut listener = Listener::<String, SharedMode>::new(
     ///         None,
-    ///         Arc::new(|_: &EventPayload<String>| {}),
+    ///         Arc::new(|_: &SharedPayload<String>| {}),
     ///         Some(1),
     ///     );
     ///
@@ -76,7 +81,7 @@ impl<T: Send + Sync + 'static> Listener<T> {
     /// ```
     #[inline]
     #[must_use]
-    pub fn blocking_call(&mut self, payload: &EventPayload<T>) -> Option<JoinHandle<()>> {
+    pub fn blocking_call(&mut self, payload: &SharedPayload<T>) -> Option<JoinHandle<()>> {
         if !self.validate_call() {
             return None;
         }
