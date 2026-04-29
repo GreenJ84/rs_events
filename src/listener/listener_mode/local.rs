@@ -1,12 +1,14 @@
 //! Local listener mode is intended for single-threaded listener usage where atomic
-//! synchronization is unnecessary. It is backed by Local aliases, `Rc` and `Cell`.
+//! synchronization is unnecessary.
+//!
+//! It is backed by Local aliases, `Rc` and `Cell`.
 
 use super::ListenerMode;
 use crate::{Cell, LocalCallback, LocalPayload, Rc};
 
 /// Single-threaded listener mode.
 ///
-/// - Callback type utilizes [`LocalCallback`].
+/// - Callback type utilizes [`LocalCallback`](crate::LocalCallback).
 /// - Lifetime type utilizes `Rc<Cell<u64>>`.
 pub struct LocalMode;
 impl ListenerMode for LocalMode {

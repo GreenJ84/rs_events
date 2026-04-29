@@ -13,7 +13,7 @@ use crate::Arc;
 ///
 /// let payload: SharedPayload<String> = SharedPayload::new(String::from("Emitting value"));
 /// ```
-pub type SharedPayload<T> = Arc<T>;
+pub type SharedPayload<T: Send + Sync> = Arc<T>;
 
 /// Type alias for a callback pointer.
 ///
@@ -29,4 +29,4 @@ pub type SharedPayload<T> = Arc<T>;
 ///     println!("Received event: {}", payload);
 /// });
 /// ```
-pub type SharedCallback<T> = Arc<dyn Fn(&SharedPayload<T>) + Send + Sync>;
+pub type SharedCallback<T: Send + Sync> = Arc<dyn Fn(&SharedPayload<T>) + Send + Sync>;

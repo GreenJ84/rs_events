@@ -1,14 +1,14 @@
-//! Shared listener mode backed by `Arc` and atomics.
-//!
-//! This mode is used when listeners must be safe to share across tasks and/or
+//! Shared listener mode is used when listeners must be safe to share across tasks and/or
 //! threads.
+//!
+//! It is backed by `Arc` and atomics.
 
 use super::ListenerMode;
 use crate::{Arc, AtomicU64, Ordering, SharedCallback, SharedPayload};
 
 /// Shared listener mode for async and multi-threaded runtimes.
 ///
-/// - Callback type utilizes [`SharedCallback`].
+/// - Callback type utilizes [`SharedCallback`](crate::SharedCallback).
 /// - Lifetime type utilizes `Arc<AtomicU64>`.
 pub struct SharedMode;
 impl ListenerMode for SharedMode {
