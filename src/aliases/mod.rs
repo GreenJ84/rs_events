@@ -13,3 +13,14 @@ pub use self::local::*;
 pub(crate) mod shared;
 #[cfg(any(feature = "multi-thread", feature = "async-tokio"))]
 pub use self::shared::*;
+
+
+pub trait EventMode {
+    /// Payload type for the callback, used for type inference in `Listener`.
+    type Payload<T>: Clone;
+
+    /// Mode-specific callback handle type.
+    type Callback<T>: Clone;
+    /// Invokes the callback with the provided payload.
+    fn invoke_callback<T>(callback: &Self::Callback<T>, payload: &Self::Payload<T>);
+}
