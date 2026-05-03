@@ -7,7 +7,7 @@ use super::EventMode;
 
 /// Type alias for a single threaded synchronous event payload pointer.
 ///
-/// Uses `Rc<T>` for both default and no standard library builds.
+/// Uses `Rc<T>`
 ///
 /// # Example (default: std)
 /// ```
@@ -24,7 +24,7 @@ pub type LocalPayload<T> = Rc<T>;
 
 /// Type alias for a single threaded synchronous callback pointer.
 ///
-/// - Uses `Rc<dyn Fn(&LocalPayload<T>) + 'static>` for both default and no standard library builds.
+/// - Uses `Rc<dyn Fn(&LocalPayload<T>) + 'static>`
 ///
 /// # Example (default: std)
 /// ```
@@ -38,17 +38,20 @@ pub type LocalPayload<T> = Rc<T>;
 pub type LocalCallback<T> = Rc<dyn Fn(&LocalPayload<T>) + 'static>;
 
 
+/// Single-threaded event mode for synchronous listeners.
 pub struct LocalMode;
 impl EventMode for LocalMode {
-    /// Payload type for local mode is a reference-counted pointer to the event data.
+    /// Payload type for local mode: A reference-counted pointer to the event data.
+    /// - `Rc<T>`
     type Payload<T> = LocalPayload<T>;
-    /// Callback type for local mode is a reference-counted pointer to a function that takes a reference to the payload.
+    /// Callback type for local mode: A reference-counted pointer to a function that takes a reference to the payload.
+    /// - `Rc<dyn Fn(&LocalPayload<T>) + 'static>`
     type Callback<T> = LocalCallback<T>;
 
     /// Invokes a local callback.
     ///
     /// # Arguments
-    /// - `callback`: The local callback handle to invoke.
+    /// - `callback`: The local callback to invoke.
     /// - `payload`: The payload to pass to the callback.
     fn invoke_callback<T>(callback: &Self::Callback<T>, payload: &Self::Payload<T>) {
         callback(payload);

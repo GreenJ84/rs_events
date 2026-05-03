@@ -7,7 +7,7 @@ use super::EventMode;
 
 /// Type alias for a shared event payload pointer for asynchronous and/or multi-threaded environments.
 ///
-/// Uses `Arc<T>` for both default and no standard library builds.
+/// Uses `Arc<T>`
 ///
 /// # Example (default: std)
 /// ```rust
@@ -19,8 +19,8 @@ pub type SharedPayload<T: Send + Sync> = Arc<T>;
 
 /// Type alias for a callback pointer.
 ///
-/// - Uses `Arc<dyn Fn(&SharedPayload<T>) + Send + Sync>` for both default and no standard library builds.
-/// - Requires `Send + Sync` for thread safety.
+/// - Uses `Arc<dyn Fn(&SharedPayload<T>) + Send + Sync>`
+    /// - Requires `Send + Sync` for thread safety.
 ///
 /// # Example (default: std)
 /// ```
@@ -33,13 +33,15 @@ pub type SharedPayload<T: Send + Sync> = Arc<T>;
 /// ```
 pub type SharedCallback<T: Send + Sync> = Arc<dyn Fn(&SharedPayload<T>) + Send + Sync>;
 
-
+/// Shared event mode for async and multi-threaded runtimes.
 pub struct SharedMode;
 impl EventMode for SharedMode {
-    /// Payload type for shared mode is a thread-safe reference-counted pointer to the event data.
-    type Payload<T: Send + Sync> = SharedPayload<T>;
-    /// Callback type for shared mode is a thread-safe reference-counted pointer to a function that takes a reference to the payload.
-    type Callback<T: Send + Sync> = SharedCallback<T>;
+    /// Payload type for shared mode: A thread-safe reference-counted pointer to the event data.
+    /// - `Arc<T>`
+    type Payload<T> = SharedPayload<T>;
+    /// Callback type for shared mode: A thread-safe reference-counted pointer to a function that takes a reference to the payload.
+    /// - `Arc<dyn Fn(&SharedPayload<T>) + Send + Sync>`
+    type Callback<T> = SharedCallback<T>;
 
     /// Invokes a shared callback.
     ///
