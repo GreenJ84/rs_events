@@ -8,10 +8,13 @@
 use crate::EventMode;
 
 
-pub mod local;
+mod local;
+pub use local::*;
 
 #[cfg(any(feature = "multi-thread", feature = "async-tokio"))]
-pub mod shared;
+mod shared;
+#[cfg(any(feature = "multi-thread", feature = "async-tokio"))]
+pub use shared::*;
 
 /// [`Listener`](crate::Listener) storage type and storage interaction contract.
 ///

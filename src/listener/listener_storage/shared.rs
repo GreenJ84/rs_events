@@ -6,10 +6,17 @@
 use super::ListenerStorage;
 use crate::{Arc, AtomicUsize, Ordering, SharedMode};
 
+/// Tag type for shared listener mode
+/// - uses `Arc<String>` for shared ownership and efficient cloning.
+pub type SharedTag = Arc<String>;
+/// Lifetime type for shared listener mode
+/// - uses `Arc<AtomicUsize>` for shared ownership and atomic call counting.
+pub type SharedLifetime = Arc<AtomicUsize>;
+
 impl ListenerStorage for SharedMode {
     /// Tag type for shared listener mode
     /// - uses `Arc<String>` for shared ownership and efficient cloning.
-    type Tag = Arc<String>;
+    type Tag = SharedTag;
 
     /// Creates an optional tag from a string-like input.
     ///
@@ -47,7 +54,7 @@ impl ListenerStorage for SharedMode {
     }
 
 
-    type Lifetime = Arc<AtomicUsize>;
+    type Lifetime = SharedLifetime;
 
     /// Creates a shared atomic lifetime counter.
     ///

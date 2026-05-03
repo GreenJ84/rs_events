@@ -6,10 +6,17 @@
 use super::ListenerStorage;
 use crate::{Cell, LocalMode, Rc};
 
+/// Type alias for listener tags in local mode
+/// - uses `Rc<String>` for shared ownership.
+pub type LocalTag = Rc<String>;
+/// Type alias for listener lifetime counters in local mode
+/// - uses `Rc<Cell<usize>>` for interior mutability and shared ownership.
+pub type LocalLifetime = Rc<Cell<usize>>;
+
 impl ListenerStorage for LocalMode {
     /// Type alias for listener tags in local mode
-    /// - uses `Rc<Cell<String>>` for interior mutability and shared ownership.
-    type Tag = Rc<String>;
+    /// - uses `Rc<String>` for and shared ownership.
+    type Tag = LocalTag;
     /// Creates an optional tag from a string-like input.
     ///
     /// # Parameters
@@ -50,7 +57,7 @@ impl ListenerStorage for LocalMode {
 
     /// Type alias for listener lifetime counters in local mode
     /// - uses `Rc<Cell<usize>>` for interior mutability and shared ownership.
-    type Lifetime = Rc<Cell<usize>>;
+    type Lifetime = LocalLifetime;
 
     /// Creates a local lifetime counter.
     ///
