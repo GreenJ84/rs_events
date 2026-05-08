@@ -1,15 +1,16 @@
-///! For local synchronous events we use single-threaded aliases which do not have Send or Sync requirements for simplicity.
-///!
-///! Even with async-tokio enabled, single-threaded aliases are available to avoid unnecessary Send + Sync bounds on payloads and callbacks that do not need them with local async task spawning.
+//! Local single-threaded event mode primitives.
+//!
+//! This module provides `LocalPayload` and `LocalCallback`, which intentionally avoid `Send`
+//! and `Sync` requirements for sync-only use and local async task spawning.
 
-use crate::Rc;
 use super::EventMode;
+use crate::Rc;
 
-/// Type alias for a single threaded synchronous event payload pointer.
+/// Type alias for a single-threaded synchronous event payload pointer.
 ///
 /// Uses `Rc<T>`
 ///
-/// # Example (default: std)
+/// # Example
 /// ```
 /// use std::rc::Rc;
 /// use rs_events::{LocalCallback, LocalPayload};
@@ -22,12 +23,12 @@ use super::EventMode;
 /// - `Rc<Cell<T>>` for `Copy` types and simple value replacement.
 pub type LocalPayload<T> = Rc<T>;
 
-/// Type alias for a single threaded synchronous callback pointer.
+/// Type alias for a single-threaded synchronous callback pointer.
 ///
 /// - Uses `Rc<dyn Fn(&LocalPayload<T>) + 'static>`
 ///
-/// # Example (default: std)
-/// ```
+/// # Example
+/// ```The other 
 /// use std::rc::Rc;
 /// use rs_events::{LocalCallback, LocalPayload};
 ///
@@ -37,22 +38,28 @@ pub type LocalPayload<T> = Rc<T>;
 /// ```
 pub type LocalCallback<T> = Rc<dyn Fn(&LocalPayload<T>) + 'static>;
 
-
 /// Single-threaded event mode for synchronous listeners.
 pub struct LocalMode;
 impl EventMode for LocalMode {
-    /// Payload type for local mode: A reference-counted pointer to the event data.
-    /// - `Rc<T>`
+    /// Payload type for local mode: [`LocalPayload`](LocalPayload).
     type Payload<T> = LocalPayload<T>;
-    /// Callback type for local mode: A reference-counted pointer to a function that takes a reference to the payload.
-    /// - `Rc<dyn Fn(&LocalPayload<T>) + 'static>`
+    /// Callback type for local mode: [`LocalCallback`](LocalCallback).
     type Callback<T> = LocalCallback<T>;
 
     /// Invokes a local callback.
     ///
-    /// # Arguments
-    /// - `callback`: The local callback to invoke.
-    /// - `payload`: The payload to pass to the callback.
+    /// # Example
+    /// ```rust
+    /// use std::rc::Rc;
+    /// use rs_events::{LocalCallback, LocalPayload, LocalMode, EventMode};
+    ///
+    /// let payload: LocalPayload<String> = Rc::new(String::from("invoke-local"));
+    /// let callback: LocalCallback<String> = Rc::new(|payload: &LocalPayload<String>| {
+    ///     // print the inner string
+    ///     println!("payload={}", &**payload);
+    /// });
+    /// LocalMode::invoke_callback(&callback, &payload);
+    /// ```
     fn invoke_callback<T>(callback: &Self::Callback<T>, payload: &Self::Payload<T>) {
         callback(payload);
     }
